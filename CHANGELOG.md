@@ -8,11 +8,14 @@
   highlighted in the file list in the thin or expanded file manager modes
 - Fixed heading ID links not working with, e.g., accents
 - Fixed heavy latency when working on a file with many related files
+- Table of contents and document info are now updated when program is idle
+  (snappier typing in large documents with many headings on slow computers)
 
 ## Under the Hood
 
 - Simplify the codeblock class hook again to significantly improve typing speed
 - Updated all dependency packages to the respective latest versions
+- Optimized processing of headings
 
 # 2.2.5
 
