@@ -265,6 +265,55 @@ function getConfig (): StoreOptions<ZettlrState> {
     },
     mutations: {
       updateTableOfContents: function (state, toc) {
+        let updateAll = false;
+        // At first, state.tableOfContents it not yet populated, 
+        // in this case just update all.
+        if (state.tableOfContents === null || toc.length !== state.tableOfContents.length) {
+          updateAll = true;
+        }
+        // Do not process headings, if the text is the same as in the previous
+        // processing. Caveat: headings with any markup will be processed
+        // even if they did not change from the last time.
+        for (const idx of toc.keys()) {
+          if (updateAll || (state.tableOfContents !== null && state.tableOfContents.hasOwnProperty(idx) && state.tableOfContents.at(idx).text !== toc[idx].text)) {
+            //console.log(toc[idx])
+            /*
+            toc[idx].text = md2html(toc[idx].text)
+            toc[idx].text = sanitizeHtml(toc[idx].text, {
+              // Headings may be emphasised and contain code
+              allowedTags: [ 'em', 'kbd', 'code' ]
+              //allowedTags: [ '' ]
+            })
+            */
+            // sanitizeHtml could be used here, but it takes longer time
+            // to process. The implementation here takes care only of the 
+            // emphasised text, code and converts < and > to HTML-safe characters.
+            let isCode = false;
+            let newText = '';
+            for (let i = 0; i < toc[idx].text.length; i++) {
+              if (toc[idx].text[i] === '`') {
+                isCode = !isCode;
+              }
+              if (!isCode && toc[idx].text[i] === '<') {
+                newText += '&lt;';
+              } else if (!isCode && toc[idx].text[i] === '>') {
+                newText += '&gt;';
+              } else {
+                newText += toc[idx].text[i];
+              }
+            }
+            toc[idx].text = md2html(newText)
+            if (toc[idx].text.indexOf('<p>') === 0 && toc[idx].text.lastIndexOf('</p>') === toc[idx].text.length - 4) {
+              toc[idx].text = toc[idx].text.substring(3, toc[idx].text.length - 4)
+            }
+            /*
+            if (state.tableOfContents !== null && state.tableOfContents.hasOwnProperty(idx)) {
+              console.log(state.tableOfContents.at(idx).text, toc[idx].text)
+            }
+            */
+          }
+        }
+        /*
         for (const entry of toc) {
           entry.text = md2html(entry.text)
           entry.text = sanitizeHtml(entry.text, {
@@ -272,6 +321,7 @@ function getConfig (): StoreOptions<ZettlrState> {
             allowedTags: [ 'em', 'kbd', 'code' ]
           })
         }
+        */
         state.tableOfContents = toc
       },
       announceModifiedFile: function (state, payload) {
